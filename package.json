@@ -1,0 +1,28 @@
+{
+  "name": "mrhq-l5-mission-5-phase-2-backend",
+  "version": "1.0.0",
+  "description": "Mission-5-Phase-2-Backend",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tonkatommy/MRHQ-L5-Mission-5-Phase-2-Backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tonkatommy/MRHQ-L5-Mission-5-Phase-2-Backend/issues"
+  },
+  "homepage": "https://github.com/tonkatommy/MRHQ-L5-Mission-5-Phase-2-Backend#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "mongoose": "^8.18.2"
+  },
+  "type": "module"
+}
