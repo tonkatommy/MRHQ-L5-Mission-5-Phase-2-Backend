@@ -28,7 +28,28 @@ app.get("/", async (req, res) => {
 // Endpoint for Z-Stations
 app.post("/find-station", async (req, res) => {
   console.log("Find station connected");
-  res.json({ message: "Seach endpoint connected" });
+  console.log("Received data from frontend:", req.body);
+
+  res.json({
+    message: "Search endpoint connected",
+    receivedData: req.body,
+  });
+});
+
+// Endpoint for filters
+app.post("/filter-stations", async (req, res) => {
+  console.log("Filter stations connected");
+  console.log("Received data from frontend:", req.body);
+
+  const { services, fuelType, stationType } = req.body;
+  console.log("Services:", services);
+  console.log("Fuel Type:", fuelType);
+  console.log("Station Type:", stationType);
+  
+  res.json({ 
+    message: "Filter endpoint connected", 
+    receivedFilters: req.body 
+  });
 });
 
 // Endpoint for Gas Station Prices
