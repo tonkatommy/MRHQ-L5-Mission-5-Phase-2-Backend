@@ -7,6 +7,12 @@ const ZStationsSchema = mongoose.Schema(
     stationAddress: String,
     openingHours: String,
 
+    // Location coordinates on Google Maps
+    coordinates: {
+      lat: Number,
+      lng: Number,
+    },
+
     // LPG swap & google, Drinks & Food, Car Wash, Trailer Hire
     keyServices: {
       keyServiceLabel: String,
