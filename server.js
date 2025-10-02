@@ -20,7 +20,8 @@ app.use(
 app.use(express.json());
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("Connected to MongoDB");
   })
@@ -44,9 +45,9 @@ app.get("/api/z-stations", async (req, res) => {
     res.json(stations);
   } catch (error) {
     console.error("Error fetching Z-Stations:", error);
-    res.status(500).json({ 
-      error: "Failed to fetch Z-Stations", 
-      details: error.message 
+    res.status(500).json({
+      error: "Failed to fetch Z-Stations",
+      details: error.message,
     });
   }
 });
@@ -64,18 +65,115 @@ app.post("/api/find-station", async (req, res) => {
 
 // Endpoint for filters
 app.post("/api/filter-stations", async (req, res) => {
-  console.log("Filter stations connected");
-  console.log("Received data from frontend:", req.body);
+  try {
+    console.log("Received filter data:", req.body);
 
-  const { services, fuelType, stationType } = req.body;
-  console.log("Services:", services);
-  console.log("Fuel Type:", fuelType);
-  console.log("Station Type:", stationType);
+    const { services, fuelType, stationType } = req.body;
 
-  res.json({
-    message: "Filter endpoint connected",
-    receivedFilters: req.body,
-  });
+    // Fuel type mapping from frontend display names to database field names
+    const fuelTypeMapping = {
+      "ZX Premium": "ZPremium",
+      "Z91 Unleaded": "Z91",
+      "Z Diesel": "ZDiesel",
+    };
+
+    // Build MongoDB query object
+    const query = {};
+
+    // Add filters if they exist
+    if (services && services.length > 0) {
+      // Match stations that have the selected services
+      query.services = { $all: services };
+    }
+
+    if (fuelType && fuelType !== "") {
+      // Map frontend fuel type to database field name
+      const dbFuelField = fuelTypeMapping[fuelType];
+      if (dbFuelField) {
+        // Check if the fuel price exists and is not null
+        query[`fuelPrices.${dbFuelField}`] = { $exists: true, $ne: null };
+        console.log(`Filtering for fuel type: ${fuelType} -> ${dbFuelField}`);
+      }
+    }
+
+    if (
+      stationType &&
+      stationType !== "" &&
+      stationType !== "Select station type"
+    ) {
+      query.stationType = stationType;
+    }
+
+    console.log("MongoDB query:", JSON.stringify(query, null, 2));
+
+    // Query the database
+    const stations = await ZStations.find(query);
+
+    console.log("Found stations:", stations.length);
+
+    // Always include selectedFuelPrice - either single fuel type or all available types
+    const stationsWithPrices = stations.map((station) => {
+      const stationObj = station.toObject();
+
+      if (stationObj.fuelPrices) {
+        const reverseFuelMapping = {
+          ZPremium: "ZX Premium",
+          Z91: "Z91 Unleaded",
+          ZDiesel: "Z Diesel",
+        };
+
+        if (fuelType && fuelTypeMapping[fuelType]) {
+          // Specific fuel type selected - include only that fuel type
+          const dbFuelField = fuelTypeMapping[fuelType];
+          if (stationObj.fuelPrices[dbFuelField]) {
+            stationObj.selectedFuelPrice = [
+              {
+                type: fuelType,
+                dbField: dbFuelField,
+                price: stationObj.fuelPrices[dbFuelField],
+              },
+            ];
+          }
+        } else {
+          // No fuel type selected - include all available fuel types
+          stationObj.selectedFuelPrice = [];
+          Object.entries(stationObj.fuelPrices).forEach(([dbField, price]) => {
+            if (price !== null && price !== undefined) {
+              stationObj.selectedFuelPrice.push({
+                type: reverseFuelMapping[dbField] || dbField,
+                dbField: dbField,
+                price: price,
+              });
+            }
+          });
+        }
+      }
+
+      return stationObj;
+    });
+
+    res.json({
+      success: true,
+      count: stationsWithPrices.length,
+      stations: stationsWithPrices,
+      appliedFilters: {
+        services,
+        fuelType: fuelType
+          ? {
+              displayName: fuelType,
+              dbField: fuelTypeMapping[fuelType],
+            }
+          : null,
+        stationType,
+      },
+    });
+  } catch (error) {
+    console.error("Error filtering stations:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
 });
 
 // Endpoint for Gas Station Prices
