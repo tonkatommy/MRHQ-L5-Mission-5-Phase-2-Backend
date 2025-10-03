@@ -35,7 +35,7 @@ app.get("/", async (req, res) => {
   res.json({ message: "The backend is connected" });
 });
 
-// Endpoint for all Z-Stations
+// Endpoint for to get all Z-Stations on initial render
 app.get("/api/z-stations", async (req, res) => {
   try {
     console.log("Z-Stations endpoint connected");
@@ -52,18 +52,7 @@ app.get("/api/z-stations", async (req, res) => {
   }
 });
 
-// Endpoint for Z-Stations
-app.post("/api/find-station", async (req, res) => {
-  console.log("Find station connected");
-  console.log("Received data from frontend:", req.body);
-
-  res.json({
-    message: "Search endpoint connected",
-    receivedData: req.body,
-  });
-});
-
-// Endpoint for filters
+// Endpoint for applying filters
 app.post("/api/filter-stations", async (req, res) => {
   try {
     console.log("Received filter data:", req.body);
@@ -174,18 +163,6 @@ app.post("/api/filter-stations", async (req, res) => {
       error: error.message,
     });
   }
-});
-
-// Endpoint for Gas Station Prices
-app.post("/api/find-gas-prices", async (req, res) => {
-  console.log("Find gas prices connected");
-  res.json({ message: "Prices endpoint connected" });
-});
-
-// Endpoint for Current Location
-app.post("/api/find-current-location", async (req, res) => {
-  console.log("Find current location connected");
-  res.json({ message: "Current Location endpoint connected" });
 });
 
 const PORT = process.env.PORT || 3000;
